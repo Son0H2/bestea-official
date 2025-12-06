@@ -8,6 +8,7 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@
 import { Edit, Plus } from "lucide-react"
 import { useState } from "react"
 import { toast } from "sonner"
+import Link from "next/link"
 
 const initialProducts = [
     {
@@ -56,50 +57,64 @@ export default function ProductsPage() {
         <div className="space-y-6">
             <div className="flex items-center justify-between">
                 <h1 className="text-2xl font-bold">상품 관리</h1>
-                <Button>
-                    <Plus className="mr-2 h-4 w-4" />
-                    상품 등록
-                </Button>
+                <Link href="/admin/products/new">
+                    <Button>
+                        <Plus className="mr-2 h-4 w-4" />
+                        상품 등록
+                    </Button>
+                </Link>
             </div>
 
-            <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
-                {products.map((product) => (
-                    <Card key={product.id} className="overflow-hidden">
-                        <div className="aspect-video w-full bg-gray-100 relative">
-                            <img
-                                src={product.image}
-                                alt={product.name}
-                                className={`h-full w-full object-cover transition-opacity ${!product.status ? "opacity-50 grayscale" : ""
-                                    }`}
-                            />
-                            {!product.status && (
-                                <div className="absolute inset-0 flex items-center justify-center bg-black/20">
-                                    <Badge variant="destructive" className="text-lg px-4 py-1">
-                                        품절
-                                    </Badge>
-                                </div>
-                            )}
-                        </div>
-                        <CardContent className="p-4">
-                            <div className="flex items-start justify-between">
-                                <div className="space-y-1">
-                                    <h3 className="font-bold leading-tight">{product.name}</h3>
-                                    <p className="text-sm text-gray-500">{product.category}</p>
-                                </div>
-                                <Switch
-                                    checked={product.status}
-                                    onCheckedChange={() => handleToggle(product.id)}
-                                />
-                            </div>
-                            <div className="mt-4 flex items-center justify-between">
-                                <span className="text-lg font-bold">{product.price}</span>
-                                <Button variant="ghost" size="sm">
-                                    <Edit className="h-4 w-4" />
-                                </Button>
-                            </div>
-                        </CardContent>
-                    </Card>
-                ))}
+            <div className="border rounded-lg">
+                <Table>
+                    <TableHeader>
+                        <TableRow>
+                            <TableHead className="w-[100px]">이미지</TableHead>
+                            <TableHead>상품명</TableHead>
+                            <TableHead>카테고리</TableHead>
+                            <TableHead>판매가</TableHead>
+                            <TableHead>상태</TableHead>
+                            <TableHead className="text-right">관리</TableHead>
+                        </TableRow>
+                    </TableHeader>
+                    <TableBody>
+                        {products.map((product) => (
+                            <TableRow key={product.id}>
+                                <TableCell>
+                                    <div className="relative h-16 w-16 rounded overflow-hidden bg-gray-100">
+                                        <img
+                                            src={product.image}
+                                            alt={product.name}
+                                            className={`h-full w-full object-cover ${!product.status ? "opacity-50 grayscale" : ""}`}
+                                        />
+                                        {!product.status && (
+                                            <div className="absolute inset-0 flex items-center justify-center bg-black/20">
+                                                <span className="text-[10px] font-bold text-white bg-red-500 px-1 rounded">품절</span>
+                                            </div>
+                                        )}
+                                    </div>
+                                </TableCell>
+                                <TableCell className="font-medium">{product.name}</TableCell>
+                                <TableCell>{product.category}</TableCell>
+                                <TableCell>{product.price}</TableCell>
+                                <TableCell>
+                                    <Switch
+                                        checked={product.status}
+                                        onCheckedChange={() => handleToggle(product.id)}
+                                    />
+                                </TableCell>
+                                <TableCell className="text-right">
+                                    <Link href={`/admin/products/${product.id}`}>
+                                        <Button variant="ghost" size="sm">
+                                            <Edit className="h-4 w-4" />
+                                            <span className="sr-only">수정</span>
+                                        </Button>
+                                    </Link>
+                                </TableCell>
+                            </TableRow>
+                        ))}
+                    </TableBody>
+                </Table>
             </div>
         </div>
     )

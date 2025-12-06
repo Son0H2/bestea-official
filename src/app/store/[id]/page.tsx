@@ -1,4 +1,4 @@
-"use client"
+
 
 import { notFound } from "next/navigation"
 import Link from "next/link"
@@ -6,6 +6,8 @@ import { Button } from "@/components/ui/button"
 import { ProductGallery } from "@/components/product-gallery"
 import { RelatedProducts } from "@/components/related-products"
 import { ArViewer } from "@/components/ar-viewer"
+import { ProductTabs } from "@/components/product-tabs"
+import { ProductInfoSection } from "@/components/product-info-section"
 import { ChevronRight, Star, Truck, ShieldCheck, ArrowLeft } from "lucide-react"
 
 // Mock Data
@@ -32,6 +34,29 @@ const products = [
         // Sample GLB model from Google's model-viewer assets
         modelUrl: "https://modelviewer.dev/shared-assets/models/Astronaut.glb"
     },
+]
+
+// Mock Options Data (In real app, fetch from DB)
+const MOCK_OPTIONS = [
+    {
+        name: "색상",
+        required: true,
+        items: [
+            { name: "라이트 그레이", price: 0 },
+            { name: "차콜", price: 0 },
+            { name: "네이비", price: 0 },
+            { name: "카멜 (이태리 천연가죽)", price: 300000 },
+        ]
+    },
+    {
+        name: "쿠션감",
+        required: false,
+        items: [
+            { name: "소프트", price: 0 },
+            { name: "미디엄", price: 0 },
+            { name: "하드", price: 50000 },
+        ]
+    }
 ]
 
 export default async function ProductDetailPage({ params }: { params: Promise<{ id: string }> }) {
@@ -109,87 +134,14 @@ export default async function ProductDetailPage({ params }: { params: Promise<{ 
                         )}
                     </div>
 
-                    {/* Right: Product Info (Sticky) */}
-                    <div className="relative">
-                        <div className="sticky top-24 space-y-8">
-                            {/* Title & Price */}
-                            <div className="space-y-4 border-b border-gray-100 pb-8">
-                                <div className="flex items-center gap-2 text-sm text-gray-500">
-                                    <span>{product.category}</span>
-                                    <span>•</span>
-                                    <div className="flex items-center gap-1 text-yellow-500">
-                                        <Star className="h-4 w-4 fill-current" />
-                                        <span className="text-black font-medium">4.9</span>
-                                        <span className="text-gray-400">(128 reviews)</span>
-                                    </div>
-                                </div>
-                                <h1 className="text-3xl md:text-4xl font-bold leading-tight">{product.name}</h1>
-                                <div className="flex items-end gap-3">
-                                    <span className="text-3xl font-bold">{product.price.toLocaleString()}원</span>
-                                    {product.originalPrice && (
-                                        <>
-                                            <span className="text-lg text-gray-400 line-through mb-1">
-                                                {product.originalPrice.toLocaleString()}원
-                                            </span>
-                                            <span className="text-lg text-red-600 font-bold mb-1">
-                                                {product.discount}%
-                                            </span>
-                                        </>
-                                    )}
-                                </div>
-                            </div>
-
-                            {/* Description */}
-                            <div className="space-y-4">
-                                <p className="text-gray-600 leading-relaxed">
-                                    {product.description}
-                                </p>
-
-                                {/* Product Details Grid */}
-                                <div className="grid grid-cols-2 gap-4 text-sm bg-gray-50 p-4 rounded-lg">
-                                    <div>
-                                        <span className="text-gray-500 block mb-1">소재</span>
-                                        <span className="font-medium">{product.details.material}</span>
-                                    </div>
-                                    <div>
-                                        <span className="text-gray-500 block mb-1">사이즈</span>
-                                        <span className="font-medium">{product.details.size}</span>
-                                    </div>
-                                    <div>
-                                        <span className="text-gray-500 block mb-1">색상</span>
-                                        <span className="font-medium">{product.details.color}</span>
-                                    </div>
-                                    <div>
-                                        <span className="text-gray-500 block mb-1">제조국</span>
-                                        <span className="font-medium">{product.details.origin}</span>
-                                    </div>
-                                </div>
-                            </div>
-
-                            {/* Delivery Info */}
-                            <div className="flex items-center gap-4 text-sm text-gray-600 border-y border-gray-100 py-4">
-                                <div className="flex items-center gap-2">
-                                    <Truck className="h-5 w-5" />
-                                    <span>무료 배송</span>
-                                </div>
-                                <div className="flex items-center gap-2">
-                                    <ShieldCheck className="h-5 w-5" />
-                                    <span>3년 무상 A/S</span>
-                                </div>
-                            </div>
-
-                            {/* Actions */}
-                            <div className="flex gap-4 pt-4">
-                                <Button variant="outline" className="flex-1 h-14 text-lg border-black hover:bg-gray-50">
-                                    장바구니
-                                </Button>
-                                <Button className="flex-1 h-14 text-lg bg-black text-white hover:bg-gray-800">
-                                    구매하기
-                                </Button>
-                            </div>
-                        </div>
+                    {/* Right: Product Info (Client Component) */}
+                    <div>
+                        <ProductInfoSection product={product} options={MOCK_OPTIONS} />
                     </div>
                 </div>
+
+                {/* Product Tabs (Details, Reviews, Q&A) */}
+                <ProductTabs product={product} />
 
                 {/* Related Products */}
                 <div className="mt-24">

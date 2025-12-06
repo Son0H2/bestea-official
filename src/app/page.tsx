@@ -39,11 +39,11 @@ export default function Home() {
                         <button className="md:hidden">
                             <Search className="h-6 w-6" />
                         </button>
-                        <Link href="#" className="flex flex-col items-center gap-1 text-xs text-gray-600 hover:text-black">
+                        <Link href="/login" className="flex flex-col items-center gap-1 text-xs text-gray-600 hover:text-black">
                             <User className="h-5 w-5" />
                             <span className="hidden md:inline">로그인</span>
                         </Link>
-                        <Link href="#" className="flex flex-col items-center gap-1 text-xs text-gray-600 hover:text-black">
+                        <Link href="/cart" className="flex flex-col items-center gap-1 text-xs text-gray-600 hover:text-black">
                             <ShoppingBag className="h-5 w-5" />
                             <span className="hidden md:inline">장바구니</span>
                         </Link>
