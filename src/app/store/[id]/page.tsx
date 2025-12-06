@@ -1,0 +1,201 @@
+"use client"
+
+import { notFound } from "next/navigation"
+import Link from "next/link"
+import { Button } from "@/components/ui/button"
+import { ProductGallery } from "@/components/product-gallery"
+import { RelatedProducts } from "@/components/related-products"
+import { ArViewer } from "@/components/ar-viewer"
+import { ChevronRight, Star, Truck, ShieldCheck, ArrowLeft } from "lucide-react"
+
+// Mock Data
+const products = [
+    {
+        id: 1,
+        name: "프리미엄 이태리 천연가죽 소파 3인용",
+        price: 1299000,
+        originalPrice: 1800000,
+        discount: 25,
+        category: "소파",
+        description: "최상급 이태리 면피 가죽을 사용하여 부드러운 촉감과 뛰어난 내구성을 자랑합니다. 30년 장인의 노하우가 담긴 인체공학적 설계로 최상의 편안함을 제공합니다.",
+        images: [
+            "https://images.unsplash.com/photo-1555041469-a586c61ea9bc?q=80&w=1200&auto=format&fit=crop",
+            "https://images.unsplash.com/photo-1550226891-ef816aed4a98?q=80&w=1200&auto=format&fit=crop",
+            "https://images.unsplash.com/photo-1493663284031-b7e3aefcae8e?q=80&w=1200&auto=format&fit=crop",
+        ],
+        details: {
+            material: "이태리 천연 면피 가죽 (Top Grain)",
+            size: "W 2100 x D 950 x H 900 (mm)",
+            color: "Classic Brown, Cream Beige, Navy Blue",
+            origin: "Made in Korea (Bestea Factory)",
+        },
+        // Sample GLB model from Google's model-viewer assets
+        modelUrl: "https://modelviewer.dev/shared-assets/models/Astronaut.glb"
+    },
+]
+
+export default async function ProductDetailPage({ params }: { params: Promise<{ id: string }> }) {
+    const { id } = await params
+    const product = products.find((p) => p.id === Number(id)) || {
+        id: Number(id),
+        name: `프리미엄 가구 상품 ${id}`,
+        price: 890000 + (Number(id) * 10000),
+        originalPrice: 1200000,
+        discount: 15,
+        category: "가구",
+        description: "베스티아의 장인정신이 깃든 프리미엄 가구입니다. 주문 제작 방식으로 최고의 품질을 보장합니다.",
+        images: [
+            "https://images.unsplash.com/photo-1530018607912-eff2daa1bac4?q=80&w=1200&auto=format&fit=crop",
+            "https://images.unsplash.com/photo-1505693416388-b0346efee749?q=80&w=1200&auto=format&fit=crop",
+            "https://images.unsplash.com/photo-1577140917170-285929fb55b7?q=80&w=1200&auto=format&fit=crop",
+        ],
+        details: {
+            material: "Premium Wood / Fabric",
+            size: "Customizable",
+            color: "Various Options",
+            origin: "Made in Korea (Bestea Factory)",
+        },
+        modelUrl: null
+    }
+
+    return (
+        <div className="min-h-screen bg-white text-black font-sans pb-20">
+            {/* Header (Simple) */}
+            <header className="border-b border-gray-200 sticky top-0 bg-white z-50">
+                <div className="container mx-auto px-4 h-14 flex items-center justify-between">
+                    <div className="flex items-center gap-4">
+                        <Link href="/store" className="p-2 hover:bg-gray-100 rounded-full">
+                            <ArrowLeft className="h-5 w-5" />
+                        </Link>
+                        <Link href="/" className="font-bold text-xl tracking-tighter">BESTEA</Link>
+                    </div>
+                </div>
+            </header>
+
+            <main className="container mx-auto px-4 py-8">
+                {/* Breadcrumb */}
+                <div className="flex items-center gap-2 text-sm text-gray-500 mb-8">
+                    <Link href="/">홈</Link>
+                    <ChevronRight className="h-4 w-4" />
+                    <Link href="/store">스토어</Link>
+                    <ChevronRight className="h-4 w-4" />
+                    <span className="text-black font-medium">{product.category}</span>
+                </div>
+
+                <div className="grid md:grid-cols-2 gap-12 lg:gap-16">
+                    {/* Left: Gallery & AR */}
+                    <div className="space-y-8">
+                        <ProductGallery images={product.images} />
+
+                        {/* AR Viewer Section */}
+                        {product.modelUrl && (
+                            <div className="bg-gray-50 p-6 rounded-2xl border border-gray-100">
+                                <div className="flex items-center justify-between mb-4">
+                                    <h3 className="font-bold text-lg flex items-center gap-2">
+                                        <span className="bg-black text-white text-xs px-2 py-1 rounded">NEW</span>
+                                        3D/AR 미리보기
+                                    </h3>
+                                    <span className="text-xs text-gray-500">마우스로 돌려보세요</span>
+                                </div>
+                                <ArViewer
+                                    src={product.modelUrl}
+                                    poster={product.images[0]}
+                                    alt={product.name}
+                                />
+                                <p className="text-xs text-gray-400 mt-3 text-center">
+                                    * 모바일에서 'AR로 보기' 버튼을 누르면 실제 공간에 배치해볼 수 있습니다.
+                                </p>
+                            </div>
+                        )}
+                    </div>
+
+                    {/* Right: Product Info (Sticky) */}
+                    <div className="relative">
+                        <div className="sticky top-24 space-y-8">
+                            {/* Title & Price */}
+                            <div className="space-y-4 border-b border-gray-100 pb-8">
+                                <div className="flex items-center gap-2 text-sm text-gray-500">
+                                    <span>{product.category}</span>
+                                    <span>•</span>
+                                    <div className="flex items-center gap-1 text-yellow-500">
+                                        <Star className="h-4 w-4 fill-current" />
+                                        <span className="text-black font-medium">4.9</span>
+                                        <span className="text-gray-400">(128 reviews)</span>
+                                    </div>
+                                </div>
+                                <h1 className="text-3xl md:text-4xl font-bold leading-tight">{product.name}</h1>
+                                <div className="flex items-end gap-3">
+                                    <span className="text-3xl font-bold">{product.price.toLocaleString()}원</span>
+                                    {product.originalPrice && (
+                                        <>
+                                            <span className="text-lg text-gray-400 line-through mb-1">
+                                                {product.originalPrice.toLocaleString()}원
+                                            </span>
+                                            <span className="text-lg text-red-600 font-bold mb-1">
+                                                {product.discount}%
+                                            </span>
+                                        </>
+                                    )}
+                                </div>
+                            </div>
+
+                            {/* Description */}
+                            <div className="space-y-4">
+                                <p className="text-gray-600 leading-relaxed">
+                                    {product.description}
+                                </p>
+
+                                {/* Product Details Grid */}
+                                <div className="grid grid-cols-2 gap-4 text-sm bg-gray-50 p-4 rounded-lg">
+                                    <div>
+                                        <span className="text-gray-500 block mb-1">소재</span>
+                                        <span className="font-medium">{product.details.material}</span>
+                                    </div>
+                                    <div>
+                                        <span className="text-gray-500 block mb-1">사이즈</span>
+                                        <span className="font-medium">{product.details.size}</span>
+                                    </div>
+                                    <div>
+                                        <span className="text-gray-500 block mb-1">색상</span>
+                                        <span className="font-medium">{product.details.color}</span>
+                                    </div>
+                                    <div>
+                                        <span className="text-gray-500 block mb-1">제조국</span>
+                                        <span className="font-medium">{product.details.origin}</span>
+                                    </div>
+                                </div>
+                            </div>
+
+                            {/* Delivery Info */}
+                            <div className="flex items-center gap-4 text-sm text-gray-600 border-y border-gray-100 py-4">
+                                <div className="flex items-center gap-2">
+                                    <Truck className="h-5 w-5" />
+                                    <span>무료 배송</span>
+                                </div>
+                                <div className="flex items-center gap-2">
+                                    <ShieldCheck className="h-5 w-5" />
+                                    <span>3년 무상 A/S</span>
+                                </div>
+                            </div>
+
+                            {/* Actions */}
+                            <div className="flex gap-4 pt-4">
+                                <Button variant="outline" className="flex-1 h-14 text-lg border-black hover:bg-gray-50">
+                                    장바구니
+                                </Button>
+                                <Button className="flex-1 h-14 text-lg bg-black text-white hover:bg-gray-800">
+                                    구매하기
+                                </Button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                {/* Related Products */}
+                <div className="mt-24">
+                    <RelatedProducts currentId={product.id} />
+                </div>
+            </main>
+        </div>
+    )
+}
