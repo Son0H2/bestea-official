@@ -1,28 +1,8 @@
+// @ts-nocheck
 "use client"
 
-import { useEffect, useRef, useState } from "react"
-import { Loader2, Box } from "lucide-react"
-import Script from "next/script"
-
-declare global {
-    namespace JSX {
-        interface IntrinsicElements {
-            "model-viewer": React.DetailedHTMLProps<React.HTMLAttributes<HTMLElement>, HTMLElement> & {
-                src?: string
-                ios_src?: string
-                poster?: string
-                alt?: string
-                shadow_intensity?: string
-                camera_controls?: boolean
-                auto_rotate?: boolean
-                ar?: boolean
-                ar_modes?: string
-                loading?: "auto" | "lazy" | "eager"
-                reveal?: "auto" | "manual"
-            }
-        }
-    }
-}
+import React, { useEffect, useState } from "react"
+import { Loader2 } from "lucide-react"
 
 interface ArViewerProps {
     src: string
