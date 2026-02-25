@@ -1,23 +1,50 @@
 "use client"
 
-import { useState } from "react"
+import { useState, useEffect } from "react"
 import Link from "next/link"
 import { Button } from "@/components/ui/button"
-import { Search, ShoppingBag, User, Menu, ChevronDown, Filter } from "lucide-react"
+import { Search, ShoppingBag, User, Menu, ChevronDown } from "lucide-react"
+import { supabase } from "@/lib/supabase/client"
 
 const categories = ["전체", "소파", "테이블", "침대", "수납장"]
 
-const products = [
-    { id: 1, name: "밀라노 천연가죽 4인 소파", category: "소파", price: 1299000, discount: 25, image: "https://images.unsplash.com/photo-1555041469-a586c61ea9bc?q=80&w=800&auto=format&fit=crop" },
-    { id: 2, name: "로마 원목 6인 식탁 세트", category: "테이블", price: 899000, discount: 15, image: "https://images.unsplash.com/photo-1530018607912-eff2daa1bac4?q=80&w=800&auto=format&fit=crop" },
-    { id: 3, name: "베니스 호텔형 침대 프레임", category: "침대", price: 1599000, discount: 10, image: "https://images.unsplash.com/photo-1505693416388-b0346efee749?q=80&w=800&auto=format&fit=crop" },
-    { id: 4, name: "나폴리 패브릭 모듈 소파", category: "소파", price: 1199000, discount: 20, image: "https://images.unsplash.com/photo-1550226891-ef816aed4a98?q=80&w=800&auto=format&fit=crop" },
-    { id: 5, name: "토리노 대리석 거실 테이블", category: "테이블", price: 799000, discount: 5, image: "https://images.unsplash.com/photo-1577140917170-285929fb55b7?q=80&w=800&auto=format&fit=crop" },
-    { id: 6, name: "피렌체 수납 침대", category: "침대", price: 1899000, discount: 30, image: "https://images.unsplash.com/photo-1505693314120-0d4438699d9e?q=80&w=800&auto=format&fit=crop" },
-]
+interface Product {
+    id: string
+    name: string
+    price: number
+    original_price: number | null
+    discount: number | null
+    category: string
+    description: string | null
+    images: string[] | null
+    stock: number
+}
 
 export default function StorePage() {
     const [selectedCategory, setSelectedCategory] = useState("전체")
+    const [products, setProducts] = useState<Product[]>([])
+    const [loading, setLoading] = useState(true)
+
+    useEffect(() => {
+        fetchProducts()
+    }, [])
+
+    async function fetchProducts() {
+        try {
+            const { data, error } = await supabase
+                .from('products')
+                .select('*')
+                .eq('is_active', true)
+                .order('created_at', { ascending: false })
+
+            if (error) throw error
+            setProducts(data || [])
+        } catch (error) {
+            console.error('Error fetching products:', error)
+        } finally {
+            setLoading(false)
+        }
+    }
 
     const filteredProducts = selectedCategory === "전체"
         ? products
@@ -31,7 +58,9 @@ export default function StorePage() {
                     <Link href="/" className="font-bold text-xl tracking-tighter">BESTEA</Link>
                     <div className="flex items-center gap-4">
                         <Search className="h-5 w-5" />
-                        <ShoppingBag className="h-5 w-5" />
+                        <Link href="/cart">
+                            <ShoppingBag className="h-5 w-5" />
+                        </Link>
                     </div>
                 </div>
             </header>
@@ -67,36 +96,50 @@ export default function StorePage() {
                 </div>
 
                 {/* Product Grid */}
-                <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-x-4 gap-y-8">
-                    {filteredProducts.map((product) => (
-                        <div key={product.id} className="group cursor-pointer">
-                            <div className="aspect-square bg-gray-100 rounded-lg mb-3 overflow-hidden relative">
-                                <img
-                                    src={product.image}
-                                    alt={product.name}
-                                    className="object-cover w-full h-full group-hover:scale-105 transition-transform duration-300"
-                                />
-                                {product.discount > 0 && (
-                                    <div className="absolute top-2 left-2 bg-red-600 text-white text-xs font-bold px-2 py-1 rounded">
-                                        {product.discount}%
+                {loading ? (
+                    <div className="text-center py-20">
+                        <p className="text-gray-500">로딩중...</p>
+                    </div>
+                ) : filteredProducts.length === 0 ? (
+                    <div className="text-center py-20">
+                        <p className="text-gray-500">상품이 없습니다.</p>
+                    </div>
+                ) : (
+                    <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-x-4 gap-y-8">
+                        {filteredProducts.map((product) => (
+                            <Link href={`/store/${product.id}`} key={product.id} className="group cursor-pointer">
+                                <div className="aspect-square bg-gray-100 rounded-lg mb-3 overflow-hidden relative">
+                                    <img
+                                        src={product.images?.[0] || 'https://via.placeholder.com/400'}
+                                        alt={product.name}
+                                        className="object-cover w-full h-full group-hover:scale-105 transition-transform duration-300"
+                                    />
+                                    {product.discount && product.discount > 0 && (
+                                        <div className="absolute top-2 left-2 bg-red-600 text-white text-xs font-bold px-2 py-1 rounded">
+                                            {product.discount}%
+                                        </div>
+                                    )}
+                                </div>
+                                <div className="space-y-1">
+                                    <p className="text-xs text-gray-500">베스티아</p>
+                                    <h3 className="text-sm font-medium line-clamp-2 group-hover:underline">{product.name}</h3>
+                                    <div className="flex items-center gap-2">
+                                        <span className="font-bold text-lg">{product.price.toLocaleString()}</span>
+                                        {product.original_price && (
+                                            <span className="text-xs text-gray-400 line-through">{product.original_price.toLocaleString()}</span>
+                                        )}
                                     </div>
-                                )}
-                            </div>
-                            <div className="space-y-1">
-                                <p className="text-xs text-gray-500">베스티아</p>
-                                <h3 className="text-sm font-medium line-clamp-2 group-hover:underline">{product.name}</h3>
-                                <div className="flex items-center gap-2">
-                                    <span className="font-bold text-lg">{product.price.toLocaleString()}</span>
-                                    <span className="text-xs text-gray-400 line-through">{(product.price * 1.2).toLocaleString()}</span>
+                                    <div className="flex gap-1 mt-1">
+                                        <span className="text-[10px] px-1 py-0.5 bg-gray-100 text-gray-600 rounded">무료배송</span>
+                                        {product.discount && product.discount > 0 && (
+                                            <span className="text-[10px] px-1 py-0.5 bg-gray-100 text-gray-600 rounded">특가</span>
+                                        )}
+                                    </div>
                                 </div>
-                                <div className="flex gap-1 mt-1">
-                                    <span className="text-[10px] px-1 py-0.5 bg-gray-100 text-gray-600 rounded">무료배송</span>
-                                    <span className="text-[10px] px-1 py-0.5 bg-gray-100 text-gray-600 rounded">특가</span>
-                                </div>
-                            </div>
-                        </div>
-                    ))}
-                </div>
+                            </Link>
+                        ))}
+                    </div>
+                )}
             </main>
         </div>
     )
