@@ -1,142 +1,293 @@
 "use client"
 
-import { useState } from "react"
-import { CartItem } from "@/components/cart-item"
-import { CartSummary } from "@/components/cart-summary"
-import { Checkbox } from "@/components/ui/checkbox"
-import { Button } from "@/components/ui/button"
+import { useState, useEffect } from "react"
 import Link from "next/link"
-import { ChevronLeft } from "lucide-react"
+import { useRouter } from "next/navigation"
+import { Button } from "@/components/ui/button"
+import { ShoppingBag, Trash2, Minus, Plus, ChevronRight, ArrowLeft } from "lucide-react"
+import { supabase } from "@/lib/supabase/client"
+import { getCurrentUser } from "@/lib/supabase/auth"
 
-// Mock Data
-const INITIAL_CART_ITEMS = [
-    {
-        id: 1,
-        name: "프리미엄 이태리 천연가죽 소파 3인용",
-        option: "색상: 카멜 (이태리 천연가죽) / 쿠션감: 하드",
-        price: 1649000, // 1299000 + 300000 + 50000
-        originalPrice: 2150000, // 1800000 + 350000
-        image: "https://images.unsplash.com/photo-1555041469-a586c61ea9bc?q=80&w=1200&auto=format&fit=crop",
-        quantity: 1,
-        selected: true,
-    },
-    {
-        id: 2,
-        name: "식탁 의자 천갈이 (개당)",
-        option: "소재: 인조가죽 / 색상: 블랙",
-        price: 100000,
-        originalPrice: 120000,
-        image: "https://images.unsplash.com/photo-1592078615290-033ee584e267?auto=format&fit=crop&q=80&w=800",
-        quantity: 4,
-        selected: true,
-    },
-]
+interface CartItem {
+    id: string
+    product_id: string
+    quantity: number
+    products: {
+        name: string
+        price: number
+        original_price: number | null
+        discount: number | null
+        images: string[] | null
+        stock: number
+    }
+}
 
 export default function CartPage() {
-    const [items, setItems] = useState(INITIAL_CART_ITEMS)
+    const router = useRouter()
+    const [cartItems, setCartItems] = useState<CartItem[]>([])
+    const [loading, setLoading] = useState(true)
+    const [updating, setUpdating] = useState<string | null>(null)
+    const [user, setUser] = useState<any>(null)
 
-    // Handlers
-    const handleToggle = (id: number) => {
-        setItems(items.map(item =>
-            item.id === id ? { ...item, selected: !item.selected } : item
-        ))
+    useEffect(() => {
+        fetchUser()
+    }, [])
+
+    useEffect(() => {
+        if (user) {
+            fetchCart()
+        }
+    }, [user])
+
+    async function fetchUser() {
+        const currentUser = await getCurrentUser()
+        setUser(currentUser)
     }
 
-    const handleToggleAll = (checked: boolean) => {
-        setItems(items.map(item => ({ ...item, selected: checked })))
+    async function fetchCart() {
+        if (!user) return
+
+        try {
+            const { data, error } = await supabase
+                .from('cart_items')
+                .select(`
+                    id,
+                    product_id,
+                    quantity,
+                    products:product_id (
+                        name,
+                        price,
+                        original_price,
+                        discount,
+                        images,
+                        stock
+                    )
+                `)
+                .eq('user_id', user.id)
+                .order('created_at', { ascending: false })
+
+            if (error) throw error
+            setCartItems(data || [])
+        } catch (error) {
+            console.error('Error fetching cart:', error)
+        } finally {
+            setLoading(false)
+        }
     }
 
-    const handleQuantityChange = (id: number, delta: number) => {
-        setItems(items.map(item => {
-            if (item.id === id) {
-                const newQuantity = Math.max(1, item.quantity + delta)
-                return { ...item, quantity: newQuantity }
-            }
-            return item
-        }))
+    async function updateQuantity(itemId: string, newQuantity: number) {
+        if (newQuantity < 1) return
+
+        setUpdating(itemId)
+        try {
+            const { error } = await supabase
+                .from('cart_items')
+                .update({ quantity: newQuantity })
+                .eq('id', itemId)
+
+            if (error) throw error
+            fetchCart()
+        } catch (error) {
+            console.error('Error updating quantity:', error)
+            alert("수량 변경 실패")
+        } finally {
+            setUpdating(null)
+        }
     }
 
-    const handleRemove = (id: number) => {
-        setItems(items.filter(item => item.id !== id))
+    async function removeItem(itemId: string) {
+        if (!confirm("장바구니에서 제거하시겠습니까?")) return
+
+        try {
+            const { error } = await supabase
+                .from('cart_items')
+                .delete()
+                .eq('id', itemId)
+
+            if (error) throw error
+            fetchCart()
+        } catch (error) {
+            console.error('Error removing item:', error)
+            alert("제거 실패")
+        }
     }
 
-    // Calculations
-    const selectedItems = items.filter(item => item.selected)
-    const totalPrice = selectedItems.reduce((sum, item) => sum + (item.price * item.quantity), 0)
-    const shippingFee = totalPrice >= 50000 || totalPrice === 0 ? 0 : 3000
-    const allSelected = items.length > 0 && items.every(item => item.selected)
+    function handleCheckout() {
+        router.push('/checkout')
+    }
 
-    if (items.length === 0) {
+    const totalAmount = cartItems.reduce((sum, item) => {
+        return sum + (item.products.price * item.quantity)
+    }, 0)
+
+    const totalOriginalAmount = cartItems.reduce((sum, item) => {
+        const price = item.products.original_price || item.products.price
+        return sum + (price * item.quantity)
+    }, 0)
+
+    if (!user) {
         return (
-            <div className="container mx-auto px-4 py-20 text-center">
-                <h2 className="text-2xl font-bold mb-4">장바구니가 비어있습니다.</h2>
-                <p className="text-gray-500 mb-8">원하는 상품을 담아보세요!</p>
-                <Link href="/store">
-                    <Button className="bg-black text-white hover:bg-gray-800">
-                        쇼핑 계속하기
-                    </Button>
-                </Link>
+            <div className="min-h-screen flex items-center justify-center">
+                <div className="text-center">
+                    <p className="text-gray-500 mb-4">로그인이 필요합니다.</p>
+                    <Link href="/login">
+                        <Button>로그인하기</Button>
+                    </Link>
+                </div>
+            </div>
+        )
+    }
+
+    if (loading) {
+        return (
+            <div className="min-h-screen flex items-center justify-center">
+                <p className="text-gray-500">로딩중...</p>
             </div>
         )
     }
 
     return (
-        <div className="container mx-auto px-4 py-8 max-w-6xl">
-            <h1 className="text-2xl font-bold mb-8">장바구니</h1>
-
-            <div className="flex flex-col lg:flex-row gap-12">
-                {/* Left: Cart Items */}
-                <div className="flex-1">
-                    {/* Header Actions */}
-                    <div className="flex items-center justify-between border-b border-black pb-4 mb-4">
-                        <div className="flex items-center gap-2">
-                            <Checkbox
-                                id="select-all"
-                                checked={allSelected}
-                                onCheckedChange={(checked) => handleToggleAll(checked as boolean)}
-                            />
-                            <label htmlFor="select-all" className="text-sm font-medium cursor-pointer select-none">
-                                전체 선택 ({selectedItems.length}/{items.length})
-                            </label>
-                        </div>
-                        <button
-                            onClick={() => setItems(items.filter(item => !item.selected))}
-                            className="text-sm text-gray-500 hover:text-black"
-                        >
-                            선택 삭제
-                        </button>
+        <div className="min-h-screen bg-gray-50">
+            {/* Header */}
+            <header className="border-b bg-white sticky top-0 z-50">
+                <div className="container mx-auto px-4 h-16 flex items-center justify-between">
+                    <div className="flex items-center gap-4">
+                        <Link href="/" className="font-bold text-2xl tracking-tighter">BESTEA</Link>
                     </div>
-
-                    {/* Item List */}
-                    <div>
-                        {items.map((item) => (
-                            <CartItem
-                                key={item.id}
-                                item={item}
-                                onToggle={handleToggle}
-                                onQuantityChange={handleQuantityChange}
-                                onRemove={handleRemove}
-                            />
-                        ))}
-                    </div>
-
-                    <div className="mt-8">
-                        <Link href="/store" className="inline-flex items-center text-sm text-gray-500 hover:text-black">
-                            <ChevronLeft className="h-4 w-4 mr-1" />
+                    <Link href="/store">
+                        <Button variant="ghost" size="sm">
                             쇼핑 계속하기
-                        </Link>
-                    </div>
+                        </Button>
+                    </Link>
+                </div>
+            </header>
+
+            <main className="container mx-auto px-4 py-8">
+                <div className="flex items-center gap-2 mb-8">
+                    <Link href="/store">
+                        <Button variant="ghost" size="sm">
+                            <ArrowLeft className="h-4 w-4 mr-2" />
+                            스토어
+                        </Button>
+                    </Link>
+                    <ChevronRight className="h-4 w-4 text-gray-400" />
+                    <h1 className="text-2xl font-bold">장바구니</h1>
                 </div>
 
-                {/* Right: Summary */}
-                <div className="lg:w-[360px]">
-                    <CartSummary
-                        selectedItemsCount={selectedItems.length}
-                        totalPrice={totalPrice}
-                        shippingFee={shippingFee}
-                    />
+                <div className="grid lg:grid-cols-3 gap-8">
+                    {/* Cart Items */}
+                    <div className="lg:col-span-2 space-y-4">
+                        {cartItems.length === 0 ? (
+                            <div className="bg-white rounded-2xl p-12 text-center">
+                                <ShoppingBag className="h-16 w-16 text-gray-300 mx-auto mb-4" />
+                                <p className="text-gray-500 mb-4">장바구니가 비었습니다.</p>
+                                <Link href="/store">
+                                    <Button>쇼핑하러 가기</Button>
+                                </Link>
+                            </div>
+                        ) : (
+                            cartItems.map((item) => (
+                                <div key={item.id} className="bg-white rounded-2xl p-6 flex gap-6">
+                                    <div className="w-32 h-32 flex-shrink-0 bg-gray-100 rounded-lg overflow-hidden">
+                                        <img
+                                            src={item.products.images?.[0] || 'https://via.placeholder.com/200'}
+                                            alt={item.products.name}
+                                            className="w-full h-full object-cover"
+                                        />
+                                    </div>
+
+                                    <div className="flex-1 flex flex-col justify-between">
+                                        <div>
+                                            <h3 className="font-medium text-lg mb-2">
+                                                {item.products.name}
+                                            </h3>
+                                            <div className="flex items-baseline gap-2">
+                                                <span className="font-bold text-red-600">
+                                                    {(item.products.price * item.quantity).toLocaleString()}원
+                                                </span>
+                                                {item.products.original_price && (
+                                                    <span className="text-sm text-gray-400 line-through">
+                                                        {(item.products.original_price * item.quantity).toLocaleString()}원
+                                                    </span>
+                                                )}
+                                            </div>
+                                        </div>
+
+                                        <div className="flex items-center justify-between">
+                                            <div className="flex items-center gap-2">
+                                                <button
+                                                    onClick={() => updateQuantity(item.id, item.quantity - 1)}
+                                                    className="w-8 h-8 rounded-full border flex items-center justify-center hover:bg-gray-50 disabled:opacity-50"
+                                                    disabled={updating === item.id}
+                                                >
+                                                    <Minus className="h-3 w-3" />
+                                                </button>
+                                                <span className="w-12 text-center">{item.quantity}</span>
+                                                <button
+                                                    onClick={() => updateQuantity(item.id, item.quantity + 1)}
+                                                    className="w-8 h-8 rounded-full border flex items-center justify-center hover:bg-gray-50 disabled:opacity-50"
+                                                    disabled={updating === item.id}
+                                                >
+                                                    <Plus className="h-3 w-3" />
+                                                </button>
+                                            </div>
+
+                                            <button
+                                                onClick={() => removeItem(item.id)}
+                                                className="text-gray-400 hover:text-red-600 transition-colors"
+                                            >
+                                                <Trash2 className="h-5 w-5" />
+                                            </button>
+                                        </div>
+                                    </div>
+                                </div>
+                            ))
+                        )}
+                    </div>
+
+                    {/* Order Summary */}
+                    {cartItems.length > 0 && (
+                        <div className="lg:col-span-1">
+                            <div className="bg-white rounded-2xl p-6 sticky top-24 space-y-4">
+                                <h2 className="text-lg font-bold">주문 요약</h2>
+
+                                <div className="space-y-3 pt-4 border-t">
+                                    <div className="flex justify-between text-sm">
+                                        <span className="text-gray-500">상품금액</span>
+                                        <span>{totalOriginalAmount.toLocaleString()}원</span>
+                                    </div>
+                                    {totalOriginalAmount > totalAmount && (
+                                        <div className="flex justify-between text-sm text-red-600">
+                                            <span>할인금액</span>
+                                            <span>-{(totalOriginalAmount - totalAmount).toLocaleString()}원</span>
+                                        </div>
+                                    )}
+                                    <div className="flex justify-between text-sm">
+                                        <span className="text-gray-500">배송비</span>
+                                        <span className="text-green-600">무료배송</span>
+                                    </div>
+                                </div>
+
+                                <div className="flex justify-between pt-4 border-t font-bold text-lg">
+                                    <span>총 결제금액</span>
+                                    <span className="text-red-600">{totalAmount.toLocaleString()}원</span>
+                                </div>
+
+                                <Button
+                                    className="w-full bg-black hover:bg-gray-800 text-white py-6 text-lg"
+                                    onClick={handleCheckout}
+                                >
+                                    주문하기
+                                </Button>
+
+                                <div className="text-xs text-gray-500 text-center pt-2">
+                                    안전한 결제 과정입니다
+                                </div>
+                            </div>
+                        </div>
+                    )}
                 </div>
-            </div>
+            </main>
         </div>
     )
 }
