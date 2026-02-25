@@ -83,7 +83,7 @@ export default function CheckoutPage() {
                     name,
                     price,
                     images
-                )
+                ).single()
             `)
             .eq('user_id', user?.id)
 

@@ -61,7 +61,7 @@ export default function CartPage() {
                         discount,
                         images,
                         stock
-                    )
+                    ).single()
                 `)
                 .eq('user_id', user.id)
                 .order('created_at', { ascending: false })
@@ -199,15 +199,15 @@ export default function CartPage() {
                                     <div className="flex-1 flex flex-col justify-between">
                                         <div>
                                             <h3 className="font-medium text-lg mb-2">
-                                                {item.products.name}
+                                                {item.products[0]?.name}
                                             </h3>
                                             <div className="flex items-baseline gap-2">
                                                 <span className="font-bold text-red-600">
-                                                    {(item.products.price * item.quantity).toLocaleString()}원
+                                                    {(item.products[0]?.price * item.quantity).toLocaleString()}원
                                                 </span>
-                                                {item.products.original_price && (
+                                                {item.products[0]?.original_price && (
                                                     <span className="text-sm text-gray-400 line-through">
-                                                        {(item.products.original_price * item.quantity).toLocaleString()}원
+                                                        {(item.products[0]?.original_price * item.quantity).toLocaleString()}원
                                                     </span>
                                                 )}
                                             </div>
