@@ -83,7 +83,7 @@ export default function CheckoutPage() {
                     name,
                     price,
                     images
-                ).single()
+                )
             `)
             .eq('user_id', user?.id)
 
@@ -92,7 +92,13 @@ export default function CheckoutPage() {
             return
         }
 
-        setCartItems(data)
+        // Map products array to single object
+        const mappedData = data.map(item => ({
+            ...item,
+            products: Array.isArray(item.products) ? item.products[0] : item.products
+        }))
+
+        setCartItems(mappedData)
         setLoading(false)
     }
 

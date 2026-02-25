@@ -93,7 +93,15 @@ export default function OrdersPage() {
         if (error) {
             console.error('Error fetching orders:', error)
         } else {
-            setOrders(data || [])
+            // Map products array to single object
+            const mappedData = (data || []).map(order => ({
+                ...order,
+                order_items: order.order_items.map(item => ({
+                    ...item,
+                    products: Array.isArray(item.products) ? item.products[0] : item.products
+                }))
+            }))
+            setOrders(mappedData)
         }
         setLoading(false)
     }

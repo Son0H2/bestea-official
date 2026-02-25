@@ -61,13 +61,20 @@ export default function CartPage() {
                         discount,
                         images,
                         stock
-                    ).single()
+                    )
                 `)
                 .eq('user_id', user.id)
                 .order('created_at', { ascending: false })
 
             if (error) throw error
-            setCartItems(data || [])
+            
+            // Map products array to single object
+            const mappedData = (data || []).map(item => ({
+                ...item,
+                products: Array.isArray(item.products) ? item.products[0] : item.products
+            }))
+            
+            setCartItems(mappedData)
         } catch (error) {
             console.error('Error fetching cart:', error)
         } finally {
@@ -199,15 +206,15 @@ export default function CartPage() {
                                     <div className="flex-1 flex flex-col justify-between">
                                         <div>
                                             <h3 className="font-medium text-lg mb-2">
-                                                {item.products[0]?.name}
+                                                {item.products.name}
                                             </h3>
                                             <div className="flex items-baseline gap-2">
                                                 <span className="font-bold text-red-600">
-                                                    {(item.products[0]?.price * item.quantity).toLocaleString()}원
+                                                    {(item.products.price * item.quantity).toLocaleString()}원
                                                 </span>
-                                                {item.products[0]?.original_price && (
+                                                {item.products.original_price && (
                                                     <span className="text-sm text-gray-400 line-through">
-                                                        {(item.products[0]?.original_price * item.quantity).toLocaleString()}원
+                                                        {(item.products.original_price * item.quantity).toLocaleString()}원
                                                     </span>
                                                 )}
                                             </div>
