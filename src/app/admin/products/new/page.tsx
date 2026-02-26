@@ -51,7 +51,7 @@ export default function AdminProductNewPage() {
             .eq('id', currentUser.id)
             .single()
 
-        if (data?.role !== 'admin') {
+        if ((data as any)?.role !== 'admin') {
             alert("관리자만 접근할 수 있습니다.")
             router.push('/')
             return
