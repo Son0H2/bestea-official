@@ -1,0 +1,78 @@
+name: Playwright Tests with Auto-Fix
+
+on:
+  push:
+    branches: [ main ]
+  pull_request:
+    branches: [ main ]
+
+jobs:
+  test:
+    timeout-minutes: 60
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v4
+    - uses: actions/setup-node@v4
+      with:
+        node-version: lts/*
+    
+    - name: Install dependencies
+      run: npm ci
+    
+    - name: Install Playwright Browsers
+      run: npx playwright install --with-deps chromium
+    
+    - name: Run Playwright tests (First attempt)
+      id: first_run
+      continue-on-error: true
+      run: npx playwright test --project=chromium --reporter=json
+      env:
+        BASE_URL: https://bestea-official.vercel.app
+        CI: true
+    
+    - name: Save test results
+      if: steps.first_run.outcome == 'failure'
+      uses: actions/upload-artifact@v4
+      with:
+        name: playwright-report-failed
+        path: |
+          playwright-report/
+          test-results/
+        retention-days: 7
+    
+    - name: Create issue on failure
+      if: steps.first_run.outcome == 'failure'
+      uses: peter-evans/create-issue-from-file@v4
+      with:
+        title: '🐛 Playwright 테스트 실패 - 자동 수정 필요'
+        content-filepath: playwright-report/summary.md
+        labels: bug, qa, auto-fix-needed
+    
+    - name: Auto-Fix Tests
+      if: steps.first_run.outcome == 'failure'
+      run: |
+        npm run test:auto-fix
+        git config user.name "GitHub Actions Bot"
+        git config user.email "actions@github.com"
+        git add tests/
+        git commit -m "fix: auto-fix playwright tests" || echo "No changes to commit"
+        git push
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+    
+    - name: Run Playwright tests (Second attempt)
+      if: steps.first_run.outcome == 'failure'
+      run: npx playwright test --project=chromium --reporter=html
+      env:
+        BASE_URL: https://bestea-official.vercel.app
+        CI: true
+    
+    - name: Test Summary
+      run: |
+        echo "## 📊 Playwright 테스트 결과" >> $GITHUB_STEP_SUMMARY
+        echo "" >> $GITHUB_STEP_SUMMARY
+        if [ "${{ steps.first_run.outcome }}" == "success" ]; then
+          echo "✅ 1 차 테스트 성공!" >> $GITHUB_STEP_SUMMARY
+        else
+          echo "❌ 1 차 테스트 실패 → 자동 수정 → 2 차 테스트 실행" >> $GITHUB_STEP_SUMMARY
+        fi

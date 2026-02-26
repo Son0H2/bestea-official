@@ -6,7 +6,9 @@
     "dev": "next dev",
     "build": "next build",
     "start": "next start",
-    "lint": "eslint"
+    "lint": "eslint",
+    "test": "playwright test",
+    "test:auto-fix": "node scripts/auto-fix-tests.js"
   },
   "dependencies": {
     "@google/model-viewer": "^4.1.0",
