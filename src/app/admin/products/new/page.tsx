@@ -133,7 +133,7 @@ export default function AdminProductNewPage() {
                     images: imageUrls.length > 0 ? imageUrls : null,
                     details: Object.keys(details).length > 0 ? details : null,
                     stock: parseInt(stock)
-                })
+                } as any)
 
             if (error) throw error
 

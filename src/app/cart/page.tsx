@@ -69,7 +69,7 @@ export default function CartPage() {
             if (error) throw error
             
             // Map products array to single object
-            const mappedData = (data || []).map(item => ({
+            const mappedData = (data || []).map((item: any) => ({
                 ...item,
                 products: Array.isArray(item.products) ? item.products[0] : item.products
             }))
@@ -87,7 +87,7 @@ export default function CartPage() {
 
         setUpdating(itemId)
         try {
-            const { error } = await supabase
+            const { error } = await (supabase as any)
                 .from('cart_items')
                 .update({ quantity: newQuantity })
                 .eq('id', itemId)

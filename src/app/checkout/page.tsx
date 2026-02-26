@@ -60,7 +60,7 @@ export default function CheckoutPage() {
     }
 
     async function fetchProfile() {
-        const { data } = await supabase
+        const { data } = await (supabase as any)
             .from('profiles')
             .select('*')
             .eq('id', user?.id)
@@ -93,7 +93,7 @@ export default function CheckoutPage() {
         }
 
         // Map products array to single object
-        const mappedData = data.map(item => ({
+        const mappedData = data.map((item: any) => ({
             ...item,
             products: Array.isArray(item.products) ? item.products[0] : item.products
         }))
@@ -119,7 +119,7 @@ export default function CheckoutPage() {
             }, 0)
 
             // Create order
-            const { data: order, error: orderError } = await supabase
+            const { data: order, error: orderError } = await (supabase as any)
                 .from('orders')
                 .insert({
                     user_id: user.id,
@@ -149,7 +149,7 @@ export default function CheckoutPage() {
                 price: item.products.price
             }))
 
-            const { error: itemsError } = await supabase
+            const { error: itemsError } = await (supabase as any)
                 .from('order_items')
                 .insert(orderItems)
 

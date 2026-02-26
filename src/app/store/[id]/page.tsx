@@ -79,7 +79,7 @@ export default function ProductDetailPage({ params }: { params: Promise<{ id: st
 
         setAddingCart(true)
         try {
-            const { error } = await supabase
+            const { error } = await (supabase as any)
                 .from('cart_items')
                 .upsert({
                     user_id: user.id,

@@ -16,7 +16,7 @@ export async function getCurrentUser(): Promise<UserProfile | null> {
     
     if (!user) return null
 
-    const { data: profile } = await supabase
+    const { data: profile } = await (supabase as any)
         .from('profiles')
         .select('*')
         .eq('id', user.id)
@@ -27,9 +27,9 @@ export async function getCurrentUser(): Promise<UserProfile | null> {
     return {
         id: user.id,
         email: user.email || '',
-        full_name: profile.full_name,
-        phone: profile.phone,
-        role: profile.role as 'customer' | 'admin'
+        full_name: (profile as any).full_name,
+        phone: (profile as any).phone,
+        role: (profile as any).role as 'customer' | 'admin'
     }
 }
 
