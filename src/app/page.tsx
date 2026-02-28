@@ -1,11 +1,31 @@
+import type { Metadata } from "next"
 import Link from "next/link"
 import { Button } from "@/components/ui/button"
 import { Search, ShoppingBag, User, Menu, ChevronRight, Hammer, Palette, PiggyBank } from "lucide-react"
 import { HeroCarousel } from "@/components/hero-carousel"
+import { OrganizationStructuredData, BreadcrumbStructuredData } from "@/components/seo"
+
+export const metadata: Metadata = {
+    title: "홈 - 이태리 프리미엄 가구 전문 | 베스티아",
+    description: "40 년 장인의 기술로 만드는 이태리 프리미엄 가구. 소파, 테이블, 침대를 공장 직영 가격으로. AI 간편 견적도 가능합니다.",
+    keywords: ["이태리가구", "프리미엄가구", "소파", "테이블", "침대", "가구리폼", "공장직영", "베스티아"],
+    openGraph: {
+        title: "베스티아 - 이태리 프리미엄 가구",
+        description: "40 년 장인의 기술로 만드는 이태리 프리미엄 가구",
+        url: "https://bestea-official.com",
+    },
+}
 
 export default function Home() {
     return (
-        <div className="flex flex-col min-h-screen bg-white text-black font-sans">
+        <>
+            {/* Structured Data for SEO */}
+            <OrganizationStructuredData />
+            <BreadcrumbStructuredData items={[
+                { name: "홈", url: "https://bestea-official.com" },
+            ]} />
+
+            <div className="flex flex-col min-h-screen bg-white text-black font-sans">
             {/* Top Banner */}
             <div className="bg-black text-white text-xs text-center py-2">
                 대한민국 유일 이태리 가구 전문 공장 직영 | 30년 장인의 자부심
@@ -185,7 +205,8 @@ export default function Home() {
                     </div>
                 </div>
             </footer>
-        </div>
+            </div>
+        </>
     )
 }
 
