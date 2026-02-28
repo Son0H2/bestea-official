@@ -8,10 +8,7 @@ import { ArrowRight, Hammer, ShoppingBag, Truck } from "lucide-react"
 import Link from "next/link"
 
 export default function AdminDashboard() {
-    // Accessibility mode check
-    const isMagnifierMode = typeof window !== 'undefined' 
-        ? document.documentElement.classList.contains('accessibility-magnifier')
-        : false
+
     return (
         <div className="space-y-6">
             <h1 className="text-2xl font-bold">오늘의 현황</h1>

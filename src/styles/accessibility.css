@@ -1,119 +1,142 @@
 /* =====================================================
-   접근성 모드 (Accessibility Modes)
-   - 돋보기 모드 (Magnifier)
-   - 고대비 모드 (High Contrast)
-   - 큰 글씨 모드 (Large Text)
+   접근성 설정 - 큰 글씨 모드만 유지
+   (고대비 모드, 돋보기 모드 제거)
    ===================================================== */
 
-/* 기본 모드 */
-.accessibility-normal {
-    font-size: 16px;
-}
-
-/* 돋보기 모드 - 모든 텍스트 1.5 배 */
-.accessibility-magnifier {
-    font-size: 24px !important;
+/* 큰 글씨 모드 - 모든 텍스트 1.5 배 */
+.large-text {
+    font-size: 1.5rem !important;
     line-height: 1.8 !important;
 }
 
-.accessibility-magnifier h1 {
+.large-text h1 {
+    font-size: 3rem !important;
+}
+
+.large-text h2 {
     font-size: 2.5rem !important;
 }
 
-.accessibility-magnifier h2 {
+.large-text h3 {
     font-size: 2rem !important;
 }
 
-.accessibility-magnifier h3 {
+.large-text h4 {
     font-size: 1.5rem !important;
 }
 
-.accessibility-magnifier p,
-.accessibility-magnifier span,
-.accessibility-magnifier label,
-.accessibility-magnifier button,
-.accessibility-magnifier a {
+.large-text p,
+.large-text span,
+.large-text label,
+.large-text button,
+.large-text a,
+.large-text div,
+.large-text input,
+.large-text textarea,
+.large-text select {
     font-size: 1.5rem !important;
 }
 
-/* 고대비 모드 - 검은색 배경, 흰색/노란색 텍스트 */
-.accessibility-contrast {
-    background-color: #000000 !important;
-    color: #ffffff !important;
-}
-
-.accessibility-contrast .bg-white {
-    background-color: #1a1a1a !important;
-}
-
-.accessibility-contrast .bg-gray-50 {
-    background-color: #0d0d0d !important;
-}
-
-.accessibility-contrast text-gray-500,
-.accessibility-contrast .text-gray-500 {
-    color: #ffff00 !important;
-}
-
-.accessibility-contrast .text-black {
-    color: #ffffff !important;
-}
-
-.accessibility-contrast .border {
-    border-color: #ffffff !important;
-    border-width: 2px !important;
-}
-
-/* 큰 글씨 모드 */
-.large-text {
-    font-size: 125% !important;
-}
-
-/* 터치 영역 확대 (모바일) */
-.accessibility-magnifier button,
-.accessibility-magnifier a,
-.accessibility-magnifier input,
-.accessibility-magnifier select {
-    min-height: 56px !important;
-    padding: 1rem !important;
-}
-
-/* 포커스 표시 강화 */
-.accessibility-magnifier *:focus,
-.accessibility-contrast *:focus {
-    outline: 4px solid #ffff00 !important;
-    outline-offset: 2px !important;
-}
-
-/* 이미지 대비 향상 */
-.accessibility-contrast img {
-    filter: contrast(1.2) brightness(1.1);
+/* 터치 영역 확대 (모바일용) */
+.large-text button,
+.large-text a,
+.large-text input,
+.large-text select,
+.large-text textarea {
+    min-height: 48px !important;
+    padding: 12px 16px !important;
 }
 
 /* 폼 요소 확대 */
-.accessibility-magnifier input,
-.accessibility-magnifier textarea,
-.accessibility-magnifier select {
+.large-text input[type="text"],
+.large-text input[type="email"],
+.large-text input[type="password"],
+.large-text input[type="tel"],
+.large-text input[type="search"],
+.large-text textarea {
     font-size: 1.5rem !important;
-    padding: 1rem !important;
+    padding: 14px 16px !important;
 }
 
-/* 카드/컨테이너 여백 증가 */
-.accessibility-magnifier .card,
-.accessibility-magnifier .p-4,
-.accessibility-magnifier .p-6 {
-    padding: 2rem !important;
+/* 버튼 확대 */
+.large-text button,
+.large-text .button {
+    font-size: 1.5rem !important;
+    padding: 12px 24px !important;
+    min-height: 48px !important;
 }
 
-/* 네비게이션 단순화 */
-.accessibility-magnifier nav {
-    padding: 1.5rem !important;
+/* 네비게이션 링크 확대 */
+.large-text nav a {
+    font-size: 1.5rem !important;
+    padding: 12px 16px !important;
 }
 
-/* 버튼 스타일 강화 */
-.accessibility-magnifier .btn,
-.accessibility-contrast .btn {
-    font-weight: bold !important;
-    text-transform: uppercase !important;
-    letter-spacing: 0.05em !important;
+/* 테이블 확대 */
+.large-text table {
+    font-size: 1.5rem !important;
+}
+
+.large-text th,
+.large-text td {
+    padding: 16px !important;
+    font-size: 1.5rem !important;
+}
+
+/* 카드 컴포넌트 확대 */
+.large-text .card,
+.large-text .card-content {
+    padding: 24px !important;
+}
+
+/* 이미지 여백 조정 */
+.large-text img {
+    margin: 16px 0 !important;
+}
+
+/* 리스트 간격 확대 */
+.large-text ul,
+.large-text ol {
+    padding-left: 32px !important;
+    line-height: 2 !important;
+}
+
+.large-text li {
+    margin-bottom: 12px !important;
+    font-size: 1.5rem !important;
+}
+
+/* 폼 레이블 확대 */
+.large-text label {
+    font-size: 1.5rem !important;
+    margin-bottom: 8px !important;
+    display: block;
+}
+
+/* 헬프 텍스트 확대 */
+.large-text .text-xs {
+    font-size: 1rem !important;
+}
+
+.large-text .text-sm {
+    font-size: 1.25rem !important;
+}
+
+/* 모바일 대응 */
+@media (max-width: 768px) {
+    .large-text {
+        font-size: 1.3rem !important;
+    }
+    
+    .large-text h1 {
+        font-size: 2.5rem !important;
+    }
+    
+    .large-text h2 {
+        font-size: 2rem !important;
+    }
+    
+    .large-text h3 {
+        font-size: 1.75rem !important;
+    }
 }

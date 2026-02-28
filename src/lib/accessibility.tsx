@@ -2,11 +2,7 @@
 
 import { createContext, useContext, useState, useEffect, ReactNode } from 'react'
 
-type AccessibilityMode = 'normal' | 'magnifier' | 'high-contrast'
-
 interface AccessibilityContextType {
-    mode: AccessibilityMode
-    setMode: (mode: AccessibilityMode) => void
     isLargeText: boolean
     toggleLargeText: () => void
 }
@@ -14,29 +10,26 @@ interface AccessibilityContextType {
 const AccessibilityContext = createContext<AccessibilityContextType | undefined>(undefined)
 
 export function AccessibilityProvider({ children }: { children: ReactNode }) {
-    const [mode, setMode] = useState<AccessibilityMode>('normal')
     const [isLargeText, setIsLargeText] = useState(false)
 
     useEffect(() => {
-        // Apply accessibility classes to document
-        document.documentElement.classList.remove('accessibility-normal', 'accessibility-magnifier', 'accessibility-contrast')
-        document.documentElement.classList.add(`accessibility-${mode}`)
-        
-        // Save to localStorage
-        localStorage.setItem('accessibility-mode', mode)
-    }, [mode])
-
-    function toggleLargeText() {
-        setIsLargeText(!isLargeText)
-        if (!isLargeText) {
+        // 큰 글씨 클래스만 관리 (고대비/돋보기 모드 제거)
+        if (isLargeText) {
             document.documentElement.classList.add('large-text')
         } else {
             document.documentElement.classList.remove('large-text')
         }
+        
+        // Save to localStorage
+        localStorage.setItem('accessibility-large-text', String(isLargeText))
+    }, [isLargeText])
+
+    function toggleLargeText() {
+        setIsLargeText(!isLargeText)
     }
 
     return (
-        <AccessibilityContext.Provider value={{ mode, setMode, isLargeText, toggleLargeText }}>
+        <AccessibilityContext.Provider value={{ isLargeText, toggleLargeText }}>
             {children}
         </AccessibilityContext.Provider>
     )
