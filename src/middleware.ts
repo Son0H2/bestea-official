@@ -39,9 +39,19 @@ export async function middleware(request: NextRequest) {
       return NextResponse.redirect(loginUrl)
     }
 
-    // TODO: 관리자 권한 확인 (Supabase RLS 또는 메타데이터 확인)
-    // 현재는 모든 인증된 사용자 접근 허용
-    // 추후 user.user_metadata.role === 'admin' 체크 추가 권장
+    // 관리자 권한 확인: profiles 테이블의 role 필드 확인
+    // - 정책(RLS) 상, 사용자는 본인 프로필(select)만 가능해야 함
+    // - role 이 'admin' 이 아니면 403 반환
+    const { data: profile, error: profileError } = await supabase
+      .from('profiles')
+      .select('role')
+      .eq('id', user.id)
+      .single()
+
+    // 프로필 조회 실패(정책 미적용/데이터 없음 등)도 접근 차단(보수적)
+    if (profileError || profile?.role !== 'admin') {
+      return new NextResponse('Forbidden', { status: 403 })
+    }
   }
 
   // 인증된 사용자가 로그인/회원가입 페이지 접근 시 홈으로

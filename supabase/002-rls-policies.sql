@@ -126,6 +126,7 @@ create policy "Admins can insert order items" on public.order_items
   );
 
 -- 6. profiles - 관리자만 다른 사용자 프로필 조회 가능
+-- 참고: 미들웨어에서 role 확인을 위해 "본인 프로필 조회"는 허용해야 함
 create policy "Admins can view all profiles" on public.profiles
   for select
   using (
@@ -134,6 +135,11 @@ create policy "Admins can view all profiles" on public.profiles
       where id = auth.uid() and role = 'admin'
     )
   );
+
+-- (중요) 로그인 사용자는 본인 프로필(특히 role)만 조회 가능
+create policy "Users can view own profile" on public.profiles
+  for select
+  using (auth.uid() = id);
 
 create policy "Admins can update all profiles" on public.profiles
   for update
