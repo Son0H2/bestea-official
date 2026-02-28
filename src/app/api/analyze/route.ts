@@ -41,8 +41,9 @@ export async function POST(req: Request) {
         }
 
         // 🔒 Rate Limiting 확인 (사용자 ID 기준)
-        const rateLimitResult = await aiAnalysisLimiter.consume(user.id)
-        if (!rateLimitResult.success) {
+        try {
+            await aiAnalysisLimiter.consume(user.id)
+        } catch (rejRes) {
             logger.warn('AI analysis rate limit exceeded', { userId: user.id })
             return NextResponse.json(
                 { error: '요청이 너무 많습니다. 5 분 후 다시 시도해주세요.' },
