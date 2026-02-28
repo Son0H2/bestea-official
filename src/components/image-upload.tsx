@@ -2,20 +2,42 @@
 
 import { useState, useRef } from "react"
 import Image from "next/image"
-import { Upload, X } from "lucide-react"
+import { Upload, X, AlertCircle } from "lucide-react"
 import { Button } from "@/components/ui/button"
 
 interface ImageUploadProps {
     onChange: (file: File | null) => void
 }
 
+// 🔒 허용된 MIME 타입
+const ALLOWED_MIME_TYPES = ['image/jpeg', 'image/png', 'image/gif', 'image/webp']
+const MAX_FILE_SIZE = 10 * 1024 * 1024 // 10MB
+
 export function ImageUpload({ onChange }: ImageUploadProps) {
     const [preview, setPreview] = useState<string | null>(null)
     const fileInputRef = useRef<HTMLInputElement>(null)
+    const [error, setError] = useState<string | null>(null)
+
+    const validateFile = (file: File): boolean => {
+        // MIME 타입 확인
+        if (!ALLOWED_MIME_TYPES.includes(file.type)) {
+            setError('이미지 파일만 업로드 가능합니다 (JPG, PNG, GIF, WEBP)')
+            return false
+        }
+
+        // 파일 사이즈 확인
+        if (file.size > MAX_FILE_SIZE) {
+            setError('파일 크기는 10MB 를 초과할 수 없습니다')
+            return false
+        }
+
+        setError(null)
+        return true
+    }
 
     const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
         const file = e.target.files?.[0]
-        if (file) {
+        if (file && validateFile(file)) {
             const reader = new FileReader()
             reader.onloadend = () => {
                 setPreview(reader.result as string)
@@ -27,6 +49,7 @@ export function ImageUpload({ onChange }: ImageUploadProps) {
 
     const handleRemove = () => {
         setPreview(null)
+        setError(null)
         onChange(null)
         if (fileInputRef.current) {
             fileInputRef.current.value = ""
@@ -42,7 +65,7 @@ export function ImageUpload({ onChange }: ImageUploadProps) {
         e.preventDefault()
         e.stopPropagation()
         const file = e.dataTransfer.files?.[0]
-        if (file && file.type.startsWith("image/")) {
+        if (file && validateFile(file)) {
             const reader = new FileReader()
             reader.onloadend = () => {
                 setPreview(reader.result as string)
@@ -61,6 +84,13 @@ export function ImageUpload({ onChange }: ImageUploadProps) {
                 ref={fileInputRef}
                 onChange={handleFileChange}
             />
+
+            {error && (
+                <div className="mb-3 flex items-center gap-2 text-sm text-red-600 bg-red-50 p-2 rounded">
+                    <AlertCircle className="h-4 w-4" />
+                    {error}
+                </div>
+            )}
 
             {preview ? (
                 <div className="relative w-full aspect-video bg-gray-100 rounded-lg overflow-hidden border border-gray-200">
@@ -93,7 +123,7 @@ export function ImageUpload({ onChange }: ImageUploadProps) {
                         클릭하거나 이미지를 드래그해주세요
                     </p>
                     <p className="text-xs text-gray-400 mt-1">
-                        JPG, PNG, GIF (최대 10MB)
+                        JPG, PNG, GIF, WEBP (최대 10MB)
                     </p>
                 </div>
             )}

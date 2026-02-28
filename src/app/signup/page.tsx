@@ -10,10 +10,12 @@ import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle }
 import { ArrowLeft, Check, X } from "lucide-react"
 import { supabase } from "@/lib/supabase/client"
 
-// 비밀번호 유효성 검사 규칙
+// 🔒 강화된 비밀번호 유효성 검사 규칙
 const PASSWORD_RULES = [
     { id: 'length', label: '12~15 자', test: (pwd: string) => pwd.length >= 12 && pwd.length <= 15 },
-    { id: 'letter', label: '영문 포함', test: (pwd: string) => /[a-zA-Z]/.test(pwd) },
+    { id: 'uppercase', label: '대문자 포함', test: (pwd: string) => /[A-Z]/.test(pwd) },
+    { id: 'lowercase', label: '소문자 포함', test: (pwd: string) => /[a-z]/.test(pwd) },
+    { id: 'number', label: '숫자 포함', test: (pwd: string) => /[0-9]/.test(pwd) },
     { id: 'special', label: '특수문자 포함', test: (pwd: string) => /[!@#$%^&*(),.?":{}|<>_\-+=\[\]\\;'`~]/.test(pwd) },
 ]
 
@@ -27,10 +29,12 @@ export default function SignupPage() {
     const [loading, setLoading] = useState(false)
     const [error, setError] = useState("")
 
-    // 비밀번호 유효성 검사
+    // 🔒 비밀번호 유효성 검사
     const passwordValidation = {
         length: password.length >= 12 && password.length <= 15,
-        letter: /[a-zA-Z]/.test(password),
+        uppercase: /[A-Z]/.test(password),
+        lowercase: /[a-z]/.test(password),
+        number: /[0-9]/.test(password),
         special: /[!@#$%^&*(),.?":{}|<>_\-+=\[\]\\;'`~]/.test(password),
     }
 

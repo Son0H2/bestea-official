@@ -1,5 +1,8 @@
 import { OpenAI } from "openai"
 import { NextResponse } from "next/server"
+import { createClient } from '@supabase/supabase-js'
+import { logger } from '@/lib/logger'
+import { aiAnalysisLimiter, getClientIP } from '@/lib/rate-limiter'
 
 // Initialize OpenAI (API key required at runtime)
 const getOpenAI = () => {
@@ -9,9 +12,44 @@ const getOpenAI = () => {
     return new OpenAI({ apiKey: process.env.OPENAI_API_KEY })
 }
 
+// Supabase client for auth verification
+const getSupabase = () => {
+    if (!process.env.NEXT_PUBLIC_SUPABASE_URL || !process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY) {
+        throw new Error('Supabase environment variables not configured')
+    }
+    return createClient(
+        process.env.NEXT_PUBLIC_SUPABASE_URL,
+        process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY
+    )
+}
 
 export async function POST(req: Request) {
     try {
+        // 🔒 인증 확인
+        const supabase = getSupabase()
+        const authHeader = req.headers.get('Authorization')
+        
+        if (!authHeader || !authHeader.startsWith('Bearer ')) {
+            return NextResponse.json({ error: '인증이 필요합니다' }, { status: 401 })
+        }
+
+        const token = authHeader.substring(7)
+        const { data: { user }, error: authError } = await supabase.auth.getUser(token)
+
+        if (authError || !user) {
+            return NextResponse.json({ error: '유효하지 않은 토큰입니다' }, { status: 401 })
+        }
+
+        // 🔒 Rate Limiting 확인 (사용자 ID 기준)
+        const rateLimitResult = await aiAnalysisLimiter.consume(user.id)
+        if (!rateLimitResult.success) {
+            logger.warn('AI analysis rate limit exceeded', { userId: user.id })
+            return NextResponse.json(
+                { error: '요청이 너무 많습니다. 5 분 후 다시 시도해주세요.' },
+                { status: 429 }
+            )
+        }
+
         const { image, serviceTypes, description } = await req.json()
 
         if (!image) {
@@ -71,7 +109,7 @@ export async function POST(req: Request) {
         return NextResponse.json(result)
 
     } catch (error) {
-        console.error("AI Analysis Error:", error)
-        return NextResponse.json({ error: "Failed to analyze image" }, { status: 500 })
+        logger.error('AI Analysis failed', error)
+        return NextResponse.json({ error: "이미지 분석에 실패했습니다" }, { status: 500 })
     }
 }
